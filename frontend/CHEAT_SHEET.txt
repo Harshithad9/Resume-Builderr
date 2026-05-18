@@ -1,0 +1,349 @@
+╔════════════════════════════════════════════════════════════════════════════════╗
+║                                                                                ║
+║                   RESUME BUILDER - QUICK CHEAT SHEET                           ║
+║                                                                                ║
+║                    A quick reference for getting started                       ║
+║                                                                                ║
+╚════════════════════════════════════════════════════════════════════════════════╝
+
+
+🚀 THE BARE MINIMUM (Just Start!)
+═══════════════════════════════════════════════════════════════════════════════
+
+# Terminal 1: Frontend
+cd /path/to/resume-builder
+pnpm install
+pnpm dev
+→ Opens http://localhost:5173
+
+# Terminal 2: Backend (copy code from BACKEND_EXAMPLES.md)
+mkdir my-backend
+cd my-backend
+npm install
+npm start
+→ Runs on http://localhost:5000
+
+# Browser
+→ Visit http://localhost:5173
+→ Click "Get Started"
+→ Fill signup form
+→ If it works, you're connected!
+
+
+📝 WHAT YOUR BACKEND NEEDS
+═══════════════════════════════════════════════════════════════════════════════
+
+Models:
+  ✓ User: { name, email, password, createdAt }
+  ✓ Resume: { userId, fullName, email, phone, linkedIn, github, ... }
+
+Endpoints:
+  ✓ POST   /api/auth/register      (create user)
+  ✓ POST   /api/auth/login         (verify & return token)
+  ✓ GET    /api/resume             (get user's resumes)
+  ✓ POST   /api/resume             (create resume)
+  ✓ PUT    /api/resume/:id         (update resume)
+  ✓ DELETE /api/resume/:id         (delete resume)
+
+Middleware:
+  ✓ CORS enabled for http://localhost:5173
+  ✓ JWT authentication for protected routes
+
+
+⚙️ CRITICAL CONFIGURATION
+═══════════════════════════════════════════════════════════════════════════════
+
+File: src/services/api.ts
+────────────────────────────────────────────────────────────────────────────
+
+Current (localhost:5000):
+  const API = axios.create({
+    baseURL: 'http://localhost:5000/api',
+  })
+
+If backend on different port (e.g., 8000):
+  const API = axios.create({
+    baseURL: 'http://localhost:8000/api',
+  })
+
+If backend on production:
+  const API = axios.create({
+    baseURL: 'https://api.yourdomain.com/api',
+  })
+
+
+✅ RESPONSE FORMAT (Must Match!)
+═══════════════════════════════════════════════════════════════════════════════
+
+Signup/Login Response (MUST HAVE):
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "user": {
+    "id": "605c72ef654321abcdef0123",
+    "email": "user@example.com",
+    "name": "John Doe"
+  }
+}
+
+Get Resumes Response (Array):
+[
+  {
+    "_id": "605c72ef654321abcdef0124",
+    "userId": "605c72ef654321abcdef0123",
+    "fullName": "John Doe",
+    "email": "john@example.com",
+    "createdAt": "2024-01-01T00:00:00Z"
+  }
+]
+
+Create/Update Resume Response (Object):
+{
+  "_id": "605c72ef654321abcdef0124",
+  "userId": "605c72ef654321abcdef0123",
+  "fullName": "John Doe",
+  ...
+  "createdAt": "2024-01-01T00:00:00Z"
+}
+
+
+🔧 CORS MIDDLEWARE (Add to Backend)
+═══════════════════════════════════════════════════════════════════════════════
+
+const cors = require('cors');
+
+app.use(cors({
+  origin: 'http://localhost:5173',      // Frontend URL
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+
+🧪 TEST WITH CURL
+═══════════════════════════════════════════════════════════════════════════════
+
+Test Signup:
+  curl -X POST http://localhost:5000/api/auth/register \
+    -H "Content-Type: application/json" \
+    -d '{"name":"John","email":"john@example.com","password":"test123"}'
+
+Test Login:
+  curl -X POST http://localhost:5000/api/auth/login \
+    -H "Content-Type: application/json" \
+    -d '{"email":"john@example.com","password":"test123"}'
+
+Test Get Resumes (requires token from login):
+  curl -X GET http://localhost:5000/api/resume \
+    -H "Authorization: YOUR_TOKEN_HERE"
+
+
+📂 IMPORTANT FILES
+═══════════════════════════════════════════════════════════════════════════════
+
+Frontend Configuration:
+  src/services/api.ts             ← Change backend URL here
+  src/context/AuthContext.tsx     ← How auth works
+  src/components/ProtectedRoute.tsx ← Route protection
+
+Frontend Pages:
+  src/pages/LandingPage.tsx       ← Home page
+  src/pages/SignupPage.tsx        ← Registration
+  src/pages/LoginPage.tsx         ← Login
+  src/pages/Dashboard.tsx         ← Resume management
+  src/pages/ResumeBuilder.tsx     ← Resume editor
+
+Configuration:
+  vite.config.ts                  ← Build config
+  tsconfig.json                   ← TypeScript config
+  package.json                    ← Dependencies
+
+
+🐛 DEBUGGING STEPS
+═══════════════════════════════════════════════════════════════════════════════
+
+1. Open DevTools: F12 (Windows) or Cmd+Option+I (Mac)
+
+2. Go to Network tab
+
+3. Try action (signup, login, create resume)
+
+4. Look for failed requests (red)
+
+5. Click the request to see details:
+   - Headers: Check Authorization header
+   - Request: What data was sent
+   - Response: What backend returned
+   - Status: HTTP status code
+
+6. Read the error message carefully - it usually says what's wrong
+
+7. Common errors:
+   ✗ 404 Not Found    → Endpoint doesn't exist
+   ✗ 400 Bad Request  → Validation failed
+   ✗ 401 Unauthorized → Token is invalid
+   ✗ 500 Server Error → Backend has a bug
+
+
+📊 FLOW DIAGRAM
+═══════════════════════════════════════════════════════════════════════════════
+
+1. User opens http://localhost:5173
+   ↓
+2. Sees landing page with "Get Started" button
+   ↓
+3. Clicks "Get Started" → Redirects to /signup
+   ↓
+4. Fills signup form: email, password, name
+   ↓
+5. Clicks "Create Account"
+   ↓
+6. Frontend sends: POST /api/auth/register with form data
+   ↓
+7. Backend receives request
+   ✓ Validates email not taken
+   ✓ Hashes password
+   ✓ Creates user in MongoDB
+   ✓ Generates JWT token
+   ✓ Returns { token, user }
+   ↓
+8. Frontend receives response
+   ✓ Stores token in localStorage
+   ✓ Saves user in context
+   ✓ Redirects to /login or /dashboard
+   ↓
+9. User is now logged in!
+
+
+🔐 HOW TOKENS WORK
+═══════════════════════════════════════════════════════════════════════════════
+
+1. User logs in
+   → Backend returns JWT token: "eyJ..."
+
+2. Frontend stores token in localStorage:
+   localStorage.setItem('token', 'eyJ...')
+
+3. For every API request, Axios interceptor adds token:
+   Authorization: eyJ...
+
+4. Backend receives request, validates token:
+   ✓ If valid: Process request, return data
+   ✗ If invalid: Return 401 Unauthorized
+
+5. Protected pages check for token:
+   ✓ If exists: Show page
+   ✗ If missing: Redirect to login
+
+
+⏱️ TIMING REFERENCE
+═══════════════════════════════════════════════════════════════════════════════
+
+Setup with existing backend:
+  pnpm install                 → 2 min
+  Update API URL               → 1 min
+  Add CORS to backend          → 2 min
+  Start both servers           → 2 min
+  Test signup                  → 3 min
+  ───────────────────────────────────
+  Total: ~10 minutes
+
+Building backend from scratch:
+  Read BACKEND_EXAMPLES.md     → 20 min
+  Create project structure     → 5 min
+  Copy backend code            → 10 min
+  Test with cURL               → 10 min
+  Connect to frontend          → 5 min
+  ───────────────────────────────────
+  Total: ~50 minutes
+
+
+📚 WHICH GUIDE TO READ?
+═══════════════════════════════════════════════════════════════════════════════
+
+Situation                        → Read This
+─────────────────────────────────────────────────────────────
+I want to start RIGHT NOW       → QUICK_START.md
+I need step-by-step details     → BACKEND_SETUP_GUIDE.md
+I need to build the backend     → BACKEND_EXAMPLES.md
+I want to understand the flow   → SETUP_SUMMARY.md
+I'm confused which to read      → GET_STARTED.md
+I want general project info     → README.md
+
+
+🎯 SUCCESS CRITERIA
+═══════════════════════════════════════════════════════════════════════════════
+
+You know it's working when:
+
+✅ pnpm dev runs without errors
+✅ Frontend opens at http://localhost:5173
+✅ Backend is running on http://localhost:5000
+✅ You can fill signup form
+✅ You see success OR error message from backend
+✅ You get redirected to login page
+✅ You can log in with test credentials
+✅ Dashboard loads and shows "No resumes" message
+✅ You can create a resume
+✅ You can edit resume and see live preview
+✅ You can save resume
+✅ You can download as PDF
+
+
+🚀 DEPLOYMENT CHECKLIST
+═══════════════════════════════════════════════════════════════════════════════
+
+Before deploying:
+  ☐ Verify app works locally
+  ☐ Update API URL to production backend
+  ☐ Build frontend: pnpm build
+  ☐ Test production build: pnpm preview
+  ☐ Deploy backend to Heroku/Railway/AWS
+  ☐ Update MongoDB connection to production
+  ☐ Add production domain to CORS
+
+Frontend deployment (Vercel):
+  vercel
+  → Follow prompts
+  → Set environment variables if needed
+
+Backend deployment:
+  → Push to GitHub
+  → Connect to Heroku/Railway
+  → Set environment variables
+  → Deploy
+
+
+🆘 QUICK TROUBLESHOOTING
+═══════════════════════════════════════════════════════════════════════════════
+
+Problem                          Solution
+───────────────────────────────────────────────────────────
+Cannot reach backend             • Check backend is running
+                                 • Verify port in API URL
+                                 • Check CORS is enabled
+
+CORS error                       • Add CORS middleware to backend
+                                 • Make sure origin is correct
+
+Login doesn't work               • Check token in response
+                                 • Open DevTools Network tab
+                                 • Look at error message
+
+Dashboard is blank               • Check localStorage for token
+                                 • Verify GET /api/resume works
+                                 • Check Authorization header sent
+
+Form won't submit                • Open DevTools Console
+                                 • Look for error messages
+                                 • Check Network tab for failed request
+
+Still stuck?                     • Read BACKEND_SETUP_GUIDE.md
+                                 • Copy code from BACKEND_EXAMPLES.md
+                                 • Post error message to Stack Overflow
+
+
+═════════════════════════════════════════════════════════════════════════════════
+
+That's it! You have everything you need. Good luck! 🚀
+
+═════════════════════════════════════════════════════════════════════════════════
